@@ -1,0 +1,215 @@
+diff -uprN elpa-2016.11.001.pre/configure elpa-2016.11.001.pre.new/configure
+--- elpa-2016.11.001.pre/configure	2016-11-28 15:30:51.000000000 +0900
++++ elpa-2016.11.001.pre.new/configure	2020-09-29 22:00:35.000000000 +0900
+@@ -6179,7 +6179,7 @@ if ac_fn_fc_try_compile "$LINENO"; then
+   cd ..
+    ac_fc_module_flag_FCFLAGS_save=$FCFLAGS
+    # Flag ordering is significant for gfortran and Sun.
+-   for ac_flag in -M -I '-I ' '-M ' -p '-mod ' '-module ' '-Am -I'; do
++   for ac_flag in -I '-I ' -M '-M ' -p '-mod ' '-module ' '-Am -I'; do
+      # Add the flag twice to prevent matching an output flag.
+      FCFLAGS="$ac_fc_module_flag_FCFLAGS_save ${ac_flag}conftest.dir ${ac_flag}conftest.dir"
+      cat > conftest.$ac_ext <<_ACEOF
+@@ -15525,6 +15525,12 @@ lt_prog_compiler_static=
+ 
+     linux* | k*bsd*-gnu | kopensolaris*-gnu | gnu*)
+       case $cc_basename in
++      # Fujitsu Compiler 4.2.1 with A64FX
++      frt* | fcc* | mpifrt* | mpifcc* )
++  	lt_prog_compiler_wl='-Wl,'
++	lt_prog_compiler_pic='-fPIC'
++	lt_prog_compiler_static='-Kstatic'
++        ;;
+       # old Intel for x86_64, which still supported -KPIC.
+       ecc*)
+ 	lt_prog_compiler_wl='-Wl,'
+@@ -19543,6 +19549,12 @@ lt_prog_compiler_static_FC=
+ 
+     linux* | k*bsd*-gnu | kopensolaris*-gnu | gnu*)
+       case $cc_basename in
++      # Fujitsu Compiler 4.2.1 with A64FX
++      frt* | fcc* | mpifrt* | mpifcc* )
++	lt_prog_compiler_wl_FC='-Wl,'
++	lt_prog_compiler_pic_FC='-fPIC'
++	lt_prog_compiler_static_FC='-Kstatic'
++        ;;
+       # old Intel for x86_64, which still supported -KPIC.
+       ecc*)
+ 	lt_prog_compiler_wl_FC='-Wl,'
+diff -uprN elpa-2016.11.001.pre/test/Fortran/read_real.F90 elpa-2016.11.001.pre.new/test/Fortran/read_real.F90
+--- elpa-2016.11.001.pre/test/Fortran/read_real.F90	2016-11-28 15:29:09.000000000 +0900
++++ elpa-2016.11.001.pre.new/test/Fortran/read_real.F90	2021-03-02 09:15:50.000000000 +0900
+@@ -113,13 +113,13 @@ program read_real
+ #ifndef WITH_OPENMP
+    call mpi_init(mpierr)
+ #else
+-   required_mpi_thread_level = MPI_THREAD_MULTIPLE
++   required_mpi_thread_level = MPI_THREAD_SERIALIZED
+ 
+    call mpi_init_thread(required_mpi_thread_level,     &
+                         provided_mpi_thread_level, mpierr)
+ 
+    if (required_mpi_thread_level .ne. provided_mpi_thread_level) then
+-     write(error_unit,*) "MPI ERROR: MPI_THREAD_MULTIPLE is not provided on this system"
++     write(error_unit,*) "MPI ERROR: MPI_THREAD_SERIALIZED is not provided on this system"
+      write(error_unit,*) "           only ", mpi_thread_level_name(provided_mpi_thread_level), " is available"
+      call exit(77)
+    endif
+diff -uprN elpa-2016.11.001.pre/test/shared/setup_mpi.F90 elpa-2016.11.001.pre.new/test/shared/setup_mpi.F90
+--- elpa-2016.11.001.pre/test/shared/setup_mpi.F90	2016-11-28 15:29:09.000000000 +0900
++++ elpa-2016.11.001.pre.new/test/shared/setup_mpi.F90	2021-03-02 09:16:24.000000000 +0900
+@@ -65,13 +65,13 @@ module mod_setup_mpi
+ #ifndef WITH_OPENMP
+       call mpi_init(mpierr)
+ #else
+-      required_mpi_thread_level = MPI_THREAD_MULTIPLE
++      required_mpi_thread_level = MPI_THREAD_SERIALIZED
+ 
+       call mpi_init_thread(required_mpi_thread_level,     &
+                            provided_mpi_thread_level, mpierr)
+ 
+       if (required_mpi_thread_level .ne. provided_mpi_thread_level) then
+-        write(error_unit,*) "MPI ERROR: MPI_THREAD_MULTIPLE is not provided on this system"
++        write(error_unit,*) "MPI ERROR: MPI_THREAD_SERIALIZED is not provided on this system"
+         write(error_unit,*) "           only ", mpi_thread_level_name(provided_mpi_thread_level), " is available"
+         call exit(77)
+       endif
+diff -uprN elpa-2016.11.001.pre/src/elpa1_tridiag_real_template.X90 elpa-2016.11.001.pre_refine/src/elpa1_tridiag_real_template.X90
+--- elpa-2016.11.001.pre/src/elpa1_tridiag_real_template.X90	2016-11-28 15:29:10.000000000 +0900
++++ elpa-2016.11.001.pre_refine/src/elpa1_tridiag_real_template.X90	2021-02-01 09:52:00.000000000 +0900
+@@ -6,12 +6,12 @@
+ !
+ !    - Max Planck Computing and Data Facility (MPCDF), formerly known as
+ !      Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG),
+-!    - Bergische Universität Wuppertal, Lehrstuhl für angewandte
++!    - Bergische Universitat Wuppertal, Lehrstuhl fur angewandte
+ !      Informatik,
+-!    - Technische Universität München, Lehrstuhl für Informatik mit
++!    - Technische Universitat Munchen, Lehrstuhl fur Informatik mit
+ !      Schwerpunkt Wissenschaftliches Rechnen ,
+ !    - Fritz-Haber-Institut, Berlin, Abt. Theorie,
+-!    - Max-Plack-Institut für Mathematik in den Naturwissenschaften,
++!    - Max-Plack-Institut fur Mathematik in den Naturwissenschaften,
+ !      Leipzig, Abt. Komplexe Strukutren in Biologie und Kognition,
+ !      and
+ !    - IBM Deutschland GmbH
+@@ -415,17 +415,9 @@
+              !u_row(1:l_rows) = u_row_dev(1:l_rows)
+ 
+ !            else !do not use GPU
++
+ #ifdef WITH_OPENMP
+           call timer%start("OpenMP parallel")
+-!$OMP PARALLEL PRIVATE(my_thread,n_threads,n_iter,i,l_col_beg,l_col_end,j,l_row_beg,l_row_end)
+-
+-          my_thread = omp_get_thread_num()
+-          n_threads = omp_get_num_threads()
+-
+-          n_iter = 0
+-
+-          uc_p(1:l_cols,my_thread) = 0.
+-          ur_p(1:l_rows,my_thread) = 0.
+ #endif /* WITH_OPENMP */
+           do i=0,(istep-2)/tile_size
+             l_col_beg = i*l_cols_per_tile+1
+@@ -435,21 +427,6 @@
+               l_row_beg = j*l_rows_per_tile+1
+               l_row_end = min(l_rows,(j+1)*l_rows_per_tile)
+               if (l_row_end<l_row_beg) cycle
+-#ifdef WITH_OPENMP
+-              if (mod(n_iter,n_threads) == my_thread) then
+-                call M_PRECISION_GEMV('T', l_row_end-l_row_beg+1, l_col_end-l_col_beg+1, &
+-                                      M_CONST_1_0, a_mat(l_row_beg,l_col_beg), lda,  &
+-                                      v_row(l_row_beg), 1,  &
+-                                      M_CONST_1_0, uc_p(l_col_beg,my_thread), 1)
+-                if (i/=j) then
+-                  call M_PRECISION_GEMV('N', l_row_end-l_row_beg+1, l_col_end-l_col_beg+1,  &
+-                                        M_CONST_1_0, a_mat(l_row_beg,l_col_beg), lda,  &
+-                                        v_col(l_col_beg), 1,  &
+-                                        M_CONST_1_0, ur_p(l_row_beg,my_thread), 1)
+-                endif
+-              endif
+-              n_iter = n_iter+1
+-#else /* WITH_OPENMP */
+ 
+               if(useGPU) then
+                 a_offset = ((l_row_beg-1) + (l_col_beg - 1) * lda) * M_size_of_PRECISION_real
+@@ -479,7 +456,6 @@
+                 endif
+               endif ! useGPU
+ 
+-#endif /* WITH_OPENMP */
+             enddo  ! j=0,i
+           enddo  ! i=0,(istep-2)/tile_size
+ 
+@@ -498,13 +474,7 @@
+ !            endif ! useGPU
+ 
+ #ifdef WITH_OPENMP
+-!$OMP END PARALLEL
+           call timer%stop("OpenMP parallel")
+-
+-          do i=0,max_threads-1
+-            u_col(1:l_cols) = u_col(1:l_cols) + uc_p(1:l_cols,i)
+-            u_row(1:l_rows) = u_row(1:l_rows) + ur_p(1:l_rows,i)
+-          enddo
+ #endif /* WITH_OPENMP */
+ 
+           if (n_stored_vecs>0) then
+diff -uprN elpa-2016.11.001.pre/src/elpa_transpose_vectors.X90 elpa-2016.11.001.pre_refine/src/elpa_transpose_vectors.X90
+--- elpa-2016.11.001.pre/src/elpa_transpose_vectors.X90	2016-11-28 15:29:10.000000000 +0900
++++ elpa-2016.11.001.pre_refine/src/elpa_transpose_vectors.X90	2021-02-04 17:14:12.000000000 +0900
+@@ -167,9 +167,6 @@ subroutine elpa_transpose_vectors_comple
+    nblks_skip = ((nvs-1)/(nblk*lcm_s_t))*lcm_s_t
+ 
+    allocate(aux( ((nblks_tot-nblks_skip+lcm_s_t-1)/lcm_s_t) * nblk * nvc ))
+-#ifdef WITH_OPENMP
+-   !$omp parallel private(lc, i, k, ns, nl, nblks_comm, auxstride, ips, ipt, n)
+-#endif
+    do n = 0, lcm_s_t-1
+ 
+       ips = mod(n,nps)
+@@ -183,9 +180,6 @@ subroutine elpa_transpose_vectors_comple
+          if (nblks_comm .ne. 0) then
+          if(myps == ips) then
+ !            k = 0
+-#ifdef WITH_OPENMP
+-            !$omp do
+-#endif
+             do lc=1,nvc
+                do i = nblks_skip+n, nblks_tot-1, lcm_s_t
+                   k = (i - nblks_skip - n)/lcm_s_t * nblk + (lc - 1) * auxstride
+@@ -197,10 +191,6 @@ subroutine elpa_transpose_vectors_comple
+             enddo
+          endif
+ 
+-#ifdef WITH_OPENMP
+-         !$omp barrier
+-         !$omp master
+-#endif
+ 
+ #ifdef WITH_MPI
+ #ifdef HAVE_DETAILED_TIMINGS
+@@ -233,12 +223,6 @@ subroutine elpa_transpose_vectors_comple
+ #endif
+ #endif /* WITH_MPI */
+ 
+-#ifdef WITH_OPENMP
+-         !$omp end master
+-         !$omp barrier
+-
+-         !$omp do
+-#endif
+ !         k = 0
+          do lc=1,nvc
+             do i = nblks_skip+n, nblks_tot-1, lcm_s_t
+@@ -253,9 +237,6 @@ subroutine elpa_transpose_vectors_comple
+       endif
+ 
+    enddo
+-#ifdef WITH_OPENMP
+-   !$omp end parallel
+-#endif
+    deallocate(aux)
+ #ifdef HAVE_DETAILED_TIMINGS
+ #if COMPLEXCASE == 1
